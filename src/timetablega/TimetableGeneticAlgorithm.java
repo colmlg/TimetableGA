@@ -31,12 +31,12 @@ public class TimetableGeneticAlgorithm  {
         mutationProb = requestInput("Enter the mutation probablility:", 1, 99);
         reproductionProb = 100 - (crossoverProb + mutationProb);
         
-        while ((reproductionProb + crossoverProb + mutationProb) != 100) {
-            JOptionPane.showMessageDialog(null, "reproductionProb + crossoverProb + mutationProb must equal 100. +.\nPlease re-enter these values.");
-            crossoverProb = requestInput("Enter the crossover probablility:", 1, 99);
-            mutationProb = requestInput("Enter the mutation probablility:", 1, 99);
-            reproductionProb = 100 - (crossoverProb + mutationProb);
-        }
+//        while ((reproductionProb + crossoverProb + mutationProb) != 100) {
+//            JOptionPane.showMessageDialog(null, "reproductionProb + crossoverProb + mutationProb must equal 100. +.\nPlease re-enter these values.");
+//            crossoverProb = requestInput("Enter the crossover probablility:", 1, 99);
+//            mutationProb = requestInput("Enter the mutation probablility:", 1, 99);
+//            reproductionProb = 100 - (crossoverProb + mutationProb);
+//        }
     }
     
     private int requestInput(String message, int minValue) {
@@ -70,10 +70,9 @@ public class TimetableGeneticAlgorithm  {
         int[][] schedule = new int[students][modulesInCourse];
         for(int s = 0; s < students; s++) {
             for(int m = 0; m < modulesInCourse; m++) {
-                int randomModule = (int)(Math.random() * modules) + 1;
-                
+                int randomModule = 0;
                 while(arrayContains(schedule[s], randomModule)) {
-                    randomModule = (int)(Math.random() * modules) + 1;
+                    randomModule = (int)(Math.random() * modules);
                 }
                 
                 schedule[s][m] = randomModule;
@@ -83,8 +82,8 @@ public class TimetableGeneticAlgorithm  {
     }
     
     private boolean arrayContains(int[] array, int value) {
-        for(int i = 0; i < array.length; i++) {
-            if(array[i] == value) {
+        for(int i : array) {
+            if(i == value) {
                 return true;
             }
         }
@@ -93,7 +92,7 @@ public class TimetableGeneticAlgorithm  {
     
     private void printStudentSchedules(int[][] schedule) {
         for(int i = 0; i < students; i++) {
-            System.out.print("Student " + i + ":");
+            System.out.print("Student " + (i + 1) + ":");
 
             for(int j = 0; j < modulesInCourse; j++) {
                 System.out.print(" " + schedule[i][j]);
