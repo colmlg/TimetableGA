@@ -171,6 +171,6 @@ public class is15148823 {
     private void waitForEndUser() {
         Scanner keyIn = new Scanner(System.in);
         System.out.print("Waiting for the end user... Enter to continue");
-4        keyIn.nextLine();
+        keyIn.nextLine();
     }
 }
