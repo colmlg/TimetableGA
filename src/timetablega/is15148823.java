@@ -1,23 +1,22 @@
 package timetablega;
-
-import java.util.ArrayList;
+import java.util.Scanner;
 import javax.swing.*;
 
-public class TimetableGeneticAlgorithm {
+public class is15148823 {
 
     private int generation, populationSize, students, modules, modulesInCourse, examSessions, crossoverProb, mutationProb, reproductionProb, examsPerSession;
 
     public static void main(String[] args) {
-        TimetableGeneticAlgorithm algorithm = new TimetableGeneticAlgorithm();
-//        algorithm.getDataFromUser();
-        algorithm.setVariablesForTest(); //TODO: remove this
+        is15148823 algorithm = new is15148823();
+        algorithm.getDataFromUser();
         int[][] schedule = algorithm.generateStudentSchedules();
         algorithm.printStudentSchedules(schedule);
         int[][] firstPopulation = algorithm.createFirstPopulation();
+        algorithm.waitForEndUser();
         algorithm.printPopulation(firstPopulation, schedule);
     }
 
-    private TimetableGeneticAlgorithm() {
+    private is15148823() {
     }
 
     private void getDataFromUser() {
@@ -36,20 +35,6 @@ public class TimetableGeneticAlgorithm {
         examSessions = requestInput("Enter the number of exam sessions:", 1);
         crossoverProb = requestInput("Enter the crossover probablility:", 1, 99);
         mutationProb = requestInput("Enter the mutation probablility:", 1, 99);
-        reproductionProb = 100 - (crossoverProb + mutationProb);
-        examsPerSession = (int) Math.ceil(modules / examSessions);
-    }
-
-    //For testing purposes only
-    private void setVariablesForTest() {
-        generation = 5;
-        populationSize = 2;
-        students = 1;
-        modules = 8;
-        modulesInCourse = 4;
-        examSessions = 5;
-        crossoverProb = 50;
-        mutationProb = 30;
         reproductionProb = 100 - (crossoverProb + mutationProb);
         examsPerSession = (int) Math.ceil(modules / examSessions);
     }
@@ -136,6 +121,8 @@ public class TimetableGeneticAlgorithm {
     }
 
     private void printPopulation(int[][] population, int[][] studentSchedules) {
+        System.out.println("Population\n");
+        
         for (int i = 0; i < populationSize; i++) {
             System.out.print("Ordering " + (i + 1) + ":");
             for (int j = 0; j < modules; j++) {
@@ -179,5 +166,11 @@ public class TimetableGeneticAlgorithm {
             }
         }
         return sessions;
+    }
+    
+    private void waitForEndUser() {
+        Scanner keyIn = new Scanner(System.in);
+        System.out.print("Waiting for the end user... Enter to continue");
+4        keyIn.nextLine();
     }
 }
