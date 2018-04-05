@@ -8,7 +8,8 @@ public class is15148823 {
 
     public static void main(String[] args) {
         is15148823 algorithm = new is15148823();
-        algorithm.getDataFromUser();
+//        algorithm.getDataFromUser();
+        algorithm.setVariablesForTest();
         int[][] schedule = algorithm.generateStudentSchedules();
         algorithm.printStudentSchedules(schedule);
         int[][] firstPopulation = algorithm.createFirstPopulation();
@@ -17,6 +18,19 @@ public class is15148823 {
     }
 
     private is15148823() {
+    }
+    
+    private void setVariablesForTest() {
+        generation = 100;
+        populationSize = 24;
+        students = 10;
+        modules = 4;
+        modulesInCourse = 2;
+        examSessions = 2;
+        crossoverProb = 50;
+        mutationProb = 30;
+        reproductionProb = 100 - (crossoverProb + mutationProb);
+        examsPerSession = (int) Math.ceil(modules / examSessions);
     }
 
     private void getDataFromUser() {
@@ -103,11 +117,36 @@ public class is15148823 {
     private int[][] createFirstPopulation() {
         int[][] population = new int[populationSize][];
         for (int i = 0; i < populationSize; i++) {
-            population[i] = createRandomOrdering();
+            int[] newOrdering = createRandomOrdering();
+            while(populationContains(population, newOrdering)) {
+                newOrdering = createRandomOrdering();
+            }
+            
+            population[i] = newOrdering;
         }
         return population;
     }
-
+    
+    private boolean populationContains(int[][] population, int[] newOrdering) {
+        for(int j = 0; j < population.length; j++) {
+            int[] ordering = population[j];
+            if(ordering == null) {
+                break;
+            }
+            boolean areEqual = true;
+            for(int i = 0; i < ordering.length; i++) {
+                if(ordering[i] != newOrdering[i]) {
+                    areEqual = false;
+                }
+            }
+            
+            if(areEqual) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private int[] createRandomOrdering() {
         int[] ordering = new int[modules];
         for (int i = 0; i < modules; i++) {
@@ -136,10 +175,11 @@ public class is15148823 {
     private int evaluateFitnessCost(int[] ordering, int[][] studentSchedules) {
         int fitnessCost = 0;
         int[][] sessions = segmentOrdering(ordering);
-        for (int[] schedule : studentSchedules) {
-            for (int i = 0; i < examsPerSession; i++) {
+        
+        for(int[] session : sessions) {
+            for(int[] schedule : studentSchedules) {
                 int fitnessEvaluator = -1;
-                for (int[] session : sessions) {
+                for(int i = 0; i < examsPerSession; i++) {
                     if(arrayContains(schedule, session[i])) {
                         fitnessEvaluator++;
                     }
