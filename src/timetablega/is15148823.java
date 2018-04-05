@@ -5,16 +5,26 @@ import javax.swing.*;
 public class is15148823 {
 
     private int generation, populationSize, students, modules, modulesInCourse, examSessions, crossoverProb, mutationProb, reproductionProb, examsPerSession;
-
+    private int[][] studentSchedules;
+    class Ordering {
+        int[] elements;
+        int fitness;
+        
+        public Ordering(int[] elements, int fitness) {
+            this.elements = elements;
+            this.fitness = fitness;
+        }
+    }
+    
     public static void main(String[] args) {
         is15148823 algorithm = new is15148823();
 //        algorithm.getDataFromUser();
         algorithm.setVariablesForTest();
-        int[][] schedule = algorithm.generateStudentSchedules();
-        algorithm.printStudentSchedules(schedule);
-        int[][] firstPopulation = algorithm.createFirstPopulation();
+        algorithm.studentSchedules = algorithm.generateStudentSchedules();
+        algorithm.printStudentSchedules();
+        Ordering[] firstPopulation = algorithm.createFirstPopulation();
         algorithm.waitForEndUser();
-        algorithm.printPopulation(firstPopulation, schedule);
+        algorithm.printPopulation(firstPopulation);
     }
 
     private is15148823() {
@@ -103,36 +113,38 @@ public class is15148823 {
         return false;
     }
 
-    private void printStudentSchedules(int[][] schedule) {
+    private void printStudentSchedules() {
         for (int i = 0; i < students; i++) {
             System.out.print("Student " + (i + 1) + ":");
 
             for (int j = 0; j < modulesInCourse; j++) {
-                System.out.print(" " + schedule[i][j]);
+                System.out.print(" " + studentSchedules[i][j]);
             }
             System.out.println();
         }
     }
 
-    private int[][] createFirstPopulation() {
-        int[][] population = new int[populationSize][];
+    private Ordering[] createFirstPopulation() {
+        Ordering[] population = new Ordering[populationSize];
         for (int i = 0; i < populationSize; i++) {
-            int[] newOrdering = createRandomOrdering();
-            while(populationContains(population, newOrdering)) {
-                newOrdering = createRandomOrdering();
+            int[] newOrderingElements = createRandomOrdering();
+            while(populationContains(population, newOrderingElements)) {
+                newOrderingElements = createRandomOrdering();
             }
-            
+            int fitness = evaluateFitnessCost(newOrderingElements);
+            Ordering newOrdering = new Ordering(newOrderingElements, fitness);
             population[i] = newOrdering;
         }
         return population;
     }
     
-    private boolean populationContains(int[][] population, int[] newOrdering) {
+    private boolean populationContains(Ordering[] population, int[] newOrdering) {
         for(int j = 0; j < population.length; j++) {
-            int[] ordering = population[j];
-            if(ordering == null) {
+            if(population[j] == null) {
                 break;
             }
+            int[] ordering = population[j].elements;
+            
             boolean areEqual = true;
             for(int i = 0; i < ordering.length; i++) {
                 if(ordering[i] != newOrdering[i]) {
@@ -159,20 +171,20 @@ public class is15148823 {
         return ordering;
     }
 
-    private void printPopulation(int[][] population, int[][] studentSchedules) {
+    private void printPopulation(Ordering[] population) {
         System.out.println("Population\n");
         
         for (int i = 0; i < populationSize; i++) {
             System.out.print("Ordering " + (i + 1) + ":");
             for (int j = 0; j < modules; j++) {
-                System.out.print(" " + population[i][j]);
+                System.out.print(" " + population[i].elements[j]);
             }
-            System.out.print(" : Fitness Cost: " + evaluateFitnessCost(population[i], studentSchedules));
+            System.out.print(" : Fitness Cost: " + population[i].fitness);
             System.out.println();
         }
     }
 
-    private int evaluateFitnessCost(int[] ordering, int[][] studentSchedules) {
+    private int evaluateFitnessCost(int[] ordering) {
         int fitnessCost = 0;
         int[][] sessions = segmentOrdering(ordering);
         
