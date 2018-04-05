@@ -1,4 +1,5 @@
 package timetablega;
+import java.util.Arrays;
 import java.util.Scanner;
 import javax.swing.*;
 
@@ -6,13 +7,22 @@ public class is15148823 {
 
     private int generation, populationSize, students, modules, modulesInCourse, examSessions, crossoverProb, mutationProb, reproductionProb, examsPerSession;
     private int[][] studentSchedules;
-    class Ordering {
+    
+    class Ordering implements Comparable<Ordering> {
         int[] elements;
         int fitness;
         
         public Ordering(int[] elements, int fitness) {
             this.elements = elements;
             this.fitness = fitness;
+        }
+
+        @Override
+        public int compareTo(Ordering ordering) {
+            if (ordering.fitness == fitness) {
+                return 0;
+            }
+            return fitness > ordering.fitness ? 1 : -1;
         }
     }
     
@@ -25,6 +35,11 @@ public class is15148823 {
         Ordering[] firstPopulation = algorithm.createFirstPopulation();
         algorithm.waitForEndUser();
         algorithm.printPopulation(firstPopulation);
+        
+        Arrays.sort(firstPopulation);
+        algorithm.applySelection(firstPopulation);
+        algorithm.printPopulation(firstPopulation);
+
     }
 
     private is15148823() {
@@ -32,7 +47,7 @@ public class is15148823 {
     
     private void setVariablesForTest() {
         generation = 100;
-        populationSize = 24;
+        populationSize = 23;
         students = 10;
         modules = 4;
         modulesInCourse = 2;
@@ -224,5 +239,16 @@ public class is15148823 {
         Scanner keyIn = new Scanner(System.in);
         System.out.print("Waiting for the end user... Enter to continue");
         keyIn.nextLine();
+    }
+    
+    private void applySelection(Ordering[] population) {
+        int sectionLength = (int) Math.ceil(population.length / 3.0);
+        for(int i = 0; i < sectionLength; i++) {
+            int newLocation = i + (2 * sectionLength);
+            if (newLocation > population.length - 1) {
+                break;
+            }
+            population[newLocation] = population[i];
+        }
     }
 }
