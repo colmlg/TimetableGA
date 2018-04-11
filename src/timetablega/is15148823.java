@@ -34,12 +34,8 @@ public class is15148823 {
         algorithm.printStudentSchedules();
         Ordering[] firstPopulation = algorithm.createFirstPopulation();
         algorithm.waitForEndUser();
-        algorithm.printPopulation(firstPopulation);
-        
-        Arrays.sort(firstPopulation);
-        algorithm.applySelection(firstPopulation);
-        algorithm.printPopulation(firstPopulation);
-
+//        algorithm.printPopulation(firstPopulation);
+        algorithm.run(firstPopulation);    
     }
 
     private is15148823() {
@@ -242,6 +238,7 @@ public class is15148823 {
     }
     
     private void applySelection(Ordering[] population) {
+        Arrays.sort(population);
         int sectionLength = (int) Math.ceil(population.length / 3.0);
         for(int i = 0; i < sectionLength; i++) {
             int newLocation = i + (2 * sectionLength);
@@ -250,5 +247,51 @@ public class is15148823 {
             }
             population[newLocation] = population[i];
         }
+    }
+    
+    private void applyMutation(Ordering ordering) {
+        int indexOne = getRandom(0, populationSize - 1);
+        int indexTwo = getRandom(0, populationSize - 1);
+        while(indexTwo == indexOne) {
+            indexTwo = getRandom(0, populationSize - 1);
+        }
+        //Swap the elements
+        int temp = ordering.elements[indexOne];
+        ordering.elements[indexOne] = ordering.elements[indexTwo];
+        ordering.elements[indexTwo] = temp;
+    }
+    
+    private void applyCrossover(Ordering[] population) {
+        int indexOne = getRandom(0, populationSize - 1);
+        int indexTwo = getRandom(0, populationSize - 1);
+        while(indexTwo == indexOne) {
+            indexTwo = getRandom(0, populationSize - 1);
+        }  
+        
+        Ordering firstOrdering = population[indexOne];
+        Ordering secondOrdering = population[indexTwo];
+        
+        int cuttingPoint = getRandom(1, populationSize - 2);
+        for(int i = cuttingPoint; i < populationSize; i++) {
+            int temp = firstOrdering.elements[i];
+            firstOrdering.elements[i] = secondOrdering.elements[i];
+            secondOrdering.elements[i] = temp;
+        }
+    }
+    
+    private void run(Ordering[] population) {
+        for(int i = 1; i <= generation; i++) {
+            applySelection(population);
+            int modification = getRandom(0,100);
+            if(modification <= crossoverProb) {
+                applyMutation(population[i]);
+            } else if (modification <= crossoverProb + mutationProb) { //TODO: Verify this
+                
+            } 
+        }
+    }
+    
+    private int getRandom(int min, int max) {
+        return (int) ((Math.random() * (max + 1 - min)) + min);
     }
 }
