@@ -1,4 +1,5 @@
 package timetablega;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import javax.swing.*;
@@ -8,9 +9,10 @@ public class is15148823 {
     private int generation, populationSize, students, modules, modulesInCourse, examSessions, crossoverProb, mutationProb, reproductionProb, examsPerSession;
     private int[][] studentSchedules;
     
-    class Ordering implements Comparable<Ordering> {
+    public class Ordering implements Comparable<Ordering> {
         int[] elements;
         int fitness;
+        boolean selected = false;
         
         public Ordering(int[] elements, int fitness) {
             this.elements = elements;
@@ -22,34 +24,67 @@ public class is15148823 {
             if (ordering.fitness == fitness) {
                 return 0;
             }
-            return fitness > ordering.fitness ? 1 : -1;
+            if (fitness > ordering.fitness) {
+                return 1;
+            }
+            return  -1;
         }
     }
     
     public static void main(String[] args) {
         is15148823 algorithm = new is15148823();
-//        algorithm.getDataFromUser();
-        algorithm.setVariablesForTest();
+        algorithm.getDataFromUser();
+//        algorithm.setVariablesForTest();
         algorithm.studentSchedules = algorithm.generateStudentSchedules();
         algorithm.printStudentSchedules();
         Ordering[] firstPopulation = algorithm.createFirstPopulation();
         algorithm.waitForEndUser();
-//        algorithm.printPopulation(firstPopulation);
+        algorithm.printPopulation(firstPopulation);
         algorithm.run(firstPopulation);    
     }
+    
+    public Ordering run(Ordering[] population) {
+        for(int i = 1; i <= generation; i++) {
+            applySelection(population);
+            
+            for(int j = 0; j < population.length; j++) {
+                if(population[j].selected) {
+                    continue;
+                }
+                int modification = getRandom(0,100);
+                if(modification <= crossoverProb) {
+                    applyCrossover(population, j);
+                } else if (modification <= crossoverProb + mutationProb) {
+                    applyMutation(population[j]);
+                } else {
+                    population[j].selected = true; //Apply Reproduction
+                }
+            }
+            
+            for(Ordering ordering : population) {
+                ordering.selected = false;
+            }
+            
+            Arrays.sort(population);
+            System.out.println("Generation " + i);
+            printOrdering(population[0]);
+        }
+        return population[0];
+    }
+    
 
     private is15148823() {
     }
     
     private void setVariablesForTest() {
         generation = 100;
-        populationSize = 23;
-        students = 10;
-        modules = 4;
+        populationSize = 24;
+        students = 100;
+        modules = 10;
         modulesInCourse = 2;
-        examSessions = 2;
-        crossoverProb = 50;
-        mutationProb = 30;
+        examSessions = 5;
+        crossoverProb = 10;
+        mutationProb = 10;
         reproductionProb = 100 - (crossoverProb + mutationProb);
         examsPerSession = (int) Math.ceil(modules / examSessions);
     }
@@ -190,9 +225,9 @@ public class is15148823 {
             for (int j = 0; j < modules; j++) {
                 System.out.print(" " + population[i].elements[j]);
             }
-            System.out.print(" : Fitness Cost: " + population[i].fitness);
-            System.out.println();
+            System.out.println(" : Fitness Cost: " + population[i].fitness);
         }
+        System.out.println();
     }
 
     private int evaluateFitnessCost(int[] ordering) {
@@ -214,7 +249,7 @@ public class is15148823 {
         }
         return fitnessCost;
     }
-
+   
     private int[][] segmentOrdering(int[] ordering) {
         int[][] sessions = new int[examSessions][examsPerSession];
         int orderingIndex = 0;
@@ -250,45 +285,110 @@ public class is15148823 {
     }
     
     private void applyMutation(Ordering ordering) {
-        int indexOne = getRandom(0, populationSize - 1);
-        int indexTwo = getRandom(0, populationSize - 1);
+        ordering.selected = true;
+        int indexOne = getRandom(0, ordering.elements.length - 1);
+        int indexTwo = getRandom(0, ordering.elements.length - 1);
         while(indexTwo == indexOne) {
-            indexTwo = getRandom(0, populationSize - 1);
+            indexTwo = getRandom(0, ordering.elements.length - 1);
         }
         //Swap the elements
         int temp = ordering.elements[indexOne];
         ordering.elements[indexOne] = ordering.elements[indexTwo];
         ordering.elements[indexTwo] = temp;
+        
+        ordering.fitness = evaluateFitnessCost(ordering.elements);
     }
     
-    private void applyCrossover(Ordering[] population) {
-        int indexOne = getRandom(0, populationSize - 1);
+    private void applyCrossover(Ordering[] population, int indexOfFirstOrdering) {
+        int numSelected = 0;
+        for(Ordering ordering : population) { //We must have at least two unselected orderings, otherwise we cannot apply crossover
+            if (ordering.selected) {
+                numSelected++;
+            }
+        }
+        if((population.length - numSelected) < 2) {
+            return;
+        }
+        
         int indexTwo = getRandom(0, populationSize - 1);
-        while(indexTwo == indexOne) {
+        while(indexTwo == indexOfFirstOrdering || population[indexTwo].selected) {
             indexTwo = getRandom(0, populationSize - 1);
         }  
         
-        Ordering firstOrdering = population[indexOne];
+        Ordering firstOrdering = population[indexOfFirstOrdering];
         Ordering secondOrdering = population[indexTwo];
+        firstOrdering.selected = true;
+        secondOrdering.selected = true;
         
-        int cuttingPoint = getRandom(1, populationSize - 2);
-        for(int i = cuttingPoint; i < populationSize; i++) {
+        int cuttingPoint = getRandom(1, firstOrdering.elements.length - 2);
+        for(int i = cuttingPoint; i < firstOrdering.elements.length; i++) {
             int temp = firstOrdering.elements[i];
             firstOrdering.elements[i] = secondOrdering.elements[i];
             secondOrdering.elements[i] = temp;
         }
+        
+        makeUnique(firstOrdering);
+        makeUnique(secondOrdering);
+        
+        firstOrdering.fitness = evaluateFitnessCost(firstOrdering.elements);
+        secondOrdering.fitness = evaluateFitnessCost(secondOrdering.elements);
     }
     
-    private void run(Ordering[] population) {
-        for(int i = 1; i <= generation; i++) {
-            applySelection(population);
-            int modification = getRandom(0,100);
-            if(modification <= crossoverProb) {
-                applyMutation(population[i]);
-            } else if (modification <= crossoverProb + mutationProb) { //TODO: Verify this
-                
-            } 
+    private void makeUnique(Ordering ordering) {
+        ArrayList<Integer> orderingUnique = new ArrayList();
+        for(int element : ordering.elements) {
+            if(!orderingUnique.contains(element)) {
+                orderingUnique.add(element);
+            }
         }
+        
+        if(orderingUnique.size() != ordering.elements.length) {
+            int[] missingElements = new int[ordering.elements.length - orderingUnique.size()];
+            int counter = 0;
+            
+            for(int i = 1; i <= modules; i++) {
+                if(!orderingUnique.contains(i)) {
+                    missingElements[counter] = i;
+                    counter++;
+                }
+            }
+       
+            counter = 0;
+            for(int i = 0; i <  ordering.elements.length; i++) {
+                for(int j = i + 1; j < ordering.elements.length; j++) {
+                    if(ordering.elements[j] == ordering.elements[i]) {
+                        ordering.elements[j] = missingElements[counter];
+                        counter++;
+                    }
+                }
+            }
+        }
+    }
+    
+    private void printOrdering(Ordering ordering) {
+        System.out.print("Ordering:");
+        for(int exam : ordering.elements) {
+            System.out.print(" " + exam);
+        }
+        System.out.println();
+        
+        for(int i = 1; i <= examSessions; i++) {
+            System.out.print("Session " + i + "\t");
+        }
+        System.out.println();
+        
+        int[][] sessions = segmentOrdering(ordering.elements);
+        for (int i = 0; i < examsPerSession; i++) {
+            for (int j = 0; j < examSessions; j++) {
+                if (sessions[j][i] != -1) {
+                    System.out.print(sessions[j][i] + "\t\t");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println();
+        System.out.println("Fitness cost: " + ordering.fitness);
+        System.out.println("----------------------------------------");
     }
     
     private int getRandom(int min, int max) {
